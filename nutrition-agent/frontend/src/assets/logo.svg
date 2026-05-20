@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none">
+  <!-- Fork handle -->
+  <path d="M10 18 L10 28" stroke="#d97757" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Fork tines -->
+  <path d="M8 5 L8 12" stroke="#d97757" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M10 5 L10 12" stroke="#d97757" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M12 5 L12 12" stroke="#d97757" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Tine connector arc -->
+  <path d="M8 12 Q10 15 12 12" stroke="#d97757" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <!-- Leaf shape -->
+  <path d="M17 27 C16 22 18 16 22 12 C25 9 27 11 25 15 C23 19 19 24 17 27 Z" fill="#d97757" opacity="0.85"/>
+  <!-- Leaf midrib -->
+  <path d="M17 27 L23 14" stroke="#d97757" stroke-width="1" stroke-linecap="round" opacity="0.3"/>
+</svg>

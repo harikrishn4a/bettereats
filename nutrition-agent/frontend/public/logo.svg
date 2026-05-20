@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none">
+  <!-- Plate circle -->
+  <circle cx="16" cy="19" r="10" stroke="#f97316" stroke-width="2"/>
+  <!-- Fork handle -->
+  <line x1="10" y1="3" x2="10" y2="12" stroke="#f97316" stroke-width="2" stroke-linecap="round"/>
+  <!-- Fork tines -->
+  <line x1="8"  y1="3" x2="8"  y2="8" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="12" y1="3" x2="12" y2="8" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Fork tine connector -->
+  <path d="M8 8 Q10 10 12 8" stroke="#f97316" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+</svg>

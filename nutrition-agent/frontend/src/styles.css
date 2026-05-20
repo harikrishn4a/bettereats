@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+/* ── Color system ────────────────────────────────────────────────────────────────
+   Analogous monochromatic scheme anchored at hue 40–43° (amber-orange family).
+   All surfaces share the warm hue — chroma increases toward the accent (orange CTA)
+   so the eye reads it as the "closest," warmest element. Warm pops, cool recedes.
+   ─────────────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* Surfaces — dark, warm, low chroma; lighten and warm as layers stack up */
+  --color-background:         oklch(0.14 0.012 40);   /* deep warm near-black */
+  --color-card:               oklch(0.20 0.016 41);   /* +6L, perceptible surface lift */
+  --color-card-foreground:    oklch(0.95 0.005 85);
+  --color-muted:              oklch(0.26 0.014 41);   /* user bubble, elevated UI */
+
+  /* Text */
+  --color-foreground:         oklch(0.95 0.005 85);   /* warm off-white, hue 85 stays neutral */
+  --color-muted-foreground:   oklch(0.72 0.010 72);   /* secondary text — ~7.5:1 on bg */
+
+  /* Structural */
+  --color-border:             oklch(0.32 0.012 42);   /* visible but not harsh */
+
+  /* Accent — maximum chroma in the amber family; pops against all surfaces */
+  --color-primary:            oklch(0.70 0.15 42);
+  --color-primary-foreground: oklch(0.14 0.012 40);   /* dark text on orange CTA */
+
+  /* Functional */
+  --color-destructive:        oklch(0.60 0.23 20);    /* red — 22° from orange; protanopia-safe */
+  --color-success:            oklch(0.65 0.16 145);   /* teal-green — opposite side of wheel */
+  --color-warning:            oklch(0.78 0.14 75);    /* amber — analogous but clearly lighter */
+
+  /* Radii */
+  --radius:    0.75rem;
+  --radius-sm: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+
+  /* Typography */
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+/* ── Prose — assistant message markdown ──────────────────────────────────────────
+   Uses tokens throughout — no hardcoded oklch values.
+   Heading scale uses Perfect Fourth intervals (1.0 / 1.125 / 1.25) so each
+   level is clearly distinguishable from the next.
+   ─────────────────────────────────────────────────────────────────────────────── */
+.prose {
+  color: var(--color-foreground);
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+
+.prose p               { margin-bottom: 0.7em; }
+.prose p:last-child    { margin-bottom: 0; }
+
+.prose ul, .prose ol   { padding-left: 1.5em; margin-bottom: 0.7em; }
+.prose li              { margin-bottom: 0.25em; }
+
+/* Heading scale — Perfect Fourth (1.333 ratio), capped to avoid excessive size */
+.prose h1, .prose h2, .prose h3 {
+  font-weight: 600;
+  margin-top: 1.2em;
+  margin-bottom: 0.45em;
+  line-height: 1.3;
+  color: var(--color-foreground);
+}
+.prose h1:first-child,
+.prose h2:first-child,
+.prose h3:first-child  { margin-top: 0; }
+.prose h1              { font-size: 1.25em; }                   /* +25% */
+.prose h2              { font-size: 1.1em; font-weight: 600; }  /* +10% */
+.prose h3 {                                                     /* same size, differentiated by color + case */
+  font-size: 0.95em;
+  font-weight: 600;
+  color: var(--color-muted-foreground);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.prose strong          { font-weight: 600; }
+
+.prose code {
+  background: var(--color-muted);
+  padding: 0.12em 0.38em;
+  border-radius: 0.3rem;
+  font-size: 0.875em;
+  font-family: ui-monospace, "Cascadia Code", "Fira Code", monospace;
+  color: var(--color-foreground);
+}
+
+.prose pre {
+  background: var(--color-muted);
+  border: 1px solid var(--color-border);
+  padding: 0.9rem 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin-bottom: 0.7em;
+}
+.prose pre code        { background: none; padding: 0; border-radius: 0; }
+
+.prose blockquote {
+  border-left: 3px solid var(--color-primary);
+  padding-left: 1em;
+  color: var(--color-muted-foreground);
+  margin: 0.7em 0;
+  font-style: italic;
+}
+
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 1.2em 0;
+}
+
+.prose a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.prose a:hover { opacity: 0.85; }
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar         { width: 5px; height: 5px; }
+::-webkit-scrollbar-track   { background: transparent; }
+::-webkit-scrollbar-thumb   {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-muted-foreground); }

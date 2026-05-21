@@ -1,0 +1,21 @@
+# Issue 1: Despite saying vegetarian during oborading, non-vegetarian options are suggested in meal cards
+
+example: one of the meal cards returned: Chili Chicken (Gravy)Boneless chicken stir fried with sliced 
+
+It seems as the decision agent is disconnected from the onboarding agent, the preferances suggested are not being aligned correctly with the information collected by the onboarding agent. However, as a user, i did indicate that i like indian and chinese food, and indian food are being displayed, so it may not be completely disconnected
+
+It is common for Singpaoreans, when on boarding, to look for halal food (certified) or vegetarian, and so the meal cards should TAKE THESE PREFERANCES explicitly into account and filter to find the best dishes based on them
+
+# Issue 2: When i click on lunch button on frontend, and then i click on dinner button, the results from the lunch are gone and are being reloaded with a new api call. This should not be the case.
+
+
+# Issue 3: Instead of returning the name of the meal, the TITLE of teh section is bein erroneously returned sometimes
+
+There is a need to enforce that the meal name is returned correctly, and is extracted correctly from grabfood website
+
+
+# Issue 4: The price of the meal extracted sometimes matches, but sometimes differs. There is a need for stricter enforcing and testing the extract the price correctly
+
+#Issue 5: Not really a issue but rather a future improvement that i want to look at.
+
+Instead of displaying top 3, i want to display all as a scrollable list, but of course ranked.

@@ -51,10 +51,18 @@ STEPS: dict[str, dict] = {
         "extract": "taste_profile: {likes: [list of strings], dislikes: [list of strings]}",
     },
     "budget": {
-        "purpose": "Get a realistic weekly food budget",
+        "purpose": (
+            "Find out how many Grab meals per week the user wants covered, then their budget for those meals. "
+            "Recommend a realistic budget based on their meal count: ~SGD 10-15 per meal is typical on Grab SG "
+            "(e.g. 10 meals/week → SGD 100-150/week). Share this guidance warmly before asking."
+        ),
         "options": None,
         "next_step": "meal_times",
-        "extract": "weekly_budget_sgd (float — if USD multiply ×1.35, if GBP ×1.70, no currency → assume SGD)",
+        "extract": (
+            "weekly_budget_sgd (float — total weekly budget in SGD; convert USD×1.35, GBP×1.70)\n"
+            "meals_per_week (integer — how many Grab meals/week the user wants covered; "
+            "if they just give a budget without a count, infer from budget÷12 rounded to nearest whole number)"
+        ),
     },
     "meal_times": {
         "purpose": "Set preferred meal times for breakfast, lunch, dinner",
@@ -205,6 +213,9 @@ OPTIONS TO SHOW (null = text input):
 EXTRACTION + CONVERSION RULES:
 - Body stats: "6 foot 2" → 187.96 cm | "165 lbs" → 74.84 kg | "male/man/he" → "M" | "female/woman/she" → "F"
 - Budget: USD ×1.35 | GBP ×1.70 | no currency → assume SGD
+- Budget step: if user says "100 for 10 meals" → weekly_budget_sgd=100, meals_per_week=10
+              if user only gives total budget → infer meals_per_week = round(budget / 12)
+              Always validate: budget ÷ meals_per_week should be ≥ SGD 8 (warn if lower)
 - Meal presets: "7am · 12pm · 7pm" → {{"breakfast":"07:00","lunch":"12:00","dinner":"19:00"}}
                "7am · 1pm · 8pm"  → {{"breakfast":"07:00","lunch":"13:00","dinner":"20:00"}}
                "8am · 12pm · 6pm" → {{"breakfast":"08:00","lunch":"12:00","dinner":"18:00"}}

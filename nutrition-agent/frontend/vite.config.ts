@@ -14,6 +14,7 @@ export default defineConfig({
     proxy: {
       "/api": "http://localhost:8000",
       "/onboarding": "http://localhost:8000",
+      "/suggest": "http://localhost:8000",
     },
   },
 });

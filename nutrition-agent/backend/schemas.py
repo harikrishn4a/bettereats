@@ -89,3 +89,28 @@ class OnboardingCompleteResponse(BaseModel):
     status: str
     macros: MacroResult
     message: str
+
+
+# ── Meal suggestion schemas ───────────────────────────────────────────────────
+
+class MealSuggestion(BaseModel):
+    rank: int
+    meal_name: str
+    restaurant_name: str
+    price_sgd: float
+    estimated_calories: int
+    estimated_protein_g: float
+    estimated_carbs_g: float
+    estimated_fat_g: float
+    match_score: int
+    match_explanation: str
+    grab_meal_url: str
+    restaurant_rating: float
+    delivery_time_mins: int
+
+
+class SuggestionsResponse(BaseModel):
+    meal_type: str
+    suggestions: list[MealSuggestion]
+    message: str
+    search_source: str = "fallback"  # "grab" | "fallback"

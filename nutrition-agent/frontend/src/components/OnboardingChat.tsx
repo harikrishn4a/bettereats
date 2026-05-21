@@ -80,12 +80,24 @@ interface OnboardingChatProps {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
+const DATA_KEY = "bettereats:onboarding_data:v1";
+
+function loadSavedData(): Record<string, unknown> {
+  try {
+    const raw = localStorage.getItem(DATA_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
+}
+
 export default function OnboardingChat({ userId, onComplete }: OnboardingChatProps) {
   const [messages, setMessages] = useState<UiMessage[]>([]);
   const [currentStep, setCurrentStep] = useState("greeting");
   const [isLoading, setIsLoading] = useState(false);
   const [inputText, setInputText] = useState("");
-  const [accumulatedData, setAccumulatedData] = useState<Record<string, unknown>>({});
+  // Initialise from localStorage so a page reload doesn't lose extracted fields
+  const [accumulatedData, setAccumulatedData] = useState<Record<string, unknown>>(loadSavedData);
   const [history, setHistory] = useState<ConversationItem[]>([]);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
 
@@ -100,6 +112,13 @@ export default function OnboardingChat({ userId, onComplete }: OnboardingChatPro
     initCalledRef.current = true;
     void initConversation();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Persist accumulated data so a page reload doesn't lose it ─────────────
+  useEffect(() => {
+    try {
+      localStorage.setItem(DATA_KEY, JSON.stringify(accumulatedData));
+    } catch {}
+  }, [accumulatedData]);
 
   // ── Scroll & resize ───────────────────────────────────────────────────────
 
@@ -119,6 +138,42 @@ export default function OnboardingChat({ userId, onComplete }: OnboardingChatPro
   const addMessage = useCallback((msg: Omit<UiMessage, "id">) => {
     setMessages((prev) => [...prev, { ...msg, id: crypto.randomUUID() }]);
   }, []);
+
+  // ── Complete onboarding — callable from multiple places ──────────────────
+  // Delays briefly so the agent's "plan locked in" message is visible first.
+  const attemptComplete = useCallback(
+    async (data: Record<string, unknown>) => {
+      await new Promise((r) => setTimeout(r, 1200));
+      try {
+        const result = await apiService.onboarding.complete(userId, data);
+        // Clear persisted draft data now that it's saved
+        try { localStorage.removeItem(DATA_KEY); } catch {}
+        onComplete(result.macros, data);
+      } catch (err: unknown) {
+        const errorText = err instanceof Error ? err.message : String(err);
+        const missingFields = parseMissingFields(errorText);
+        if (missingFields.length > 0) {
+          const labels = missingFields.map(fieldLabel).join(" and ");
+          addMessage({
+            sender: "agent",
+            text: `I'm missing your ${labels} to finish the calculation — could you share that?`,
+            options: null,
+          });
+          // Keep currentStep at "done" so the next user reply retries complete
+          // rather than going into a regular chat step
+          setCurrentStep("_retry_complete");
+        } else {
+          addMessage({
+            sender: "agent",
+            text: "Something went wrong saving your plan. Tap below to try again.",
+            options: ["Save my plan"],
+          });
+          setCurrentStep("goal_validation");
+        }
+      }
+    },
+    [userId, onComplete, addMessage]
+  );
 
   // ── Conversation start ────────────────────────────────────────────────────
 
@@ -164,6 +219,20 @@ export default function OnboardingChat({ userId, onComplete }: OnboardingChatPro
         { sender: "user", message: userText, timestamp: now },
       ];
 
+      // ── Recovery path: user provided a missing field, retry complete ────────
+      if (currentStep === "_retry_complete") {
+        const retryData = { ...accumulatedData, _user_provided: userText };
+        setHistory(updatedHistory);
+        addMessage({
+          sender: "agent",
+          text: "Got it! Saving your plan now…",
+          options: null,
+        });
+        setIsLoading(false);
+        void attemptComplete(retryData);
+        return;
+      }
+
       try {
         const { agent_response, current_step: nextStep } = await apiService.onboarding.chat(
           userId,
@@ -197,33 +266,7 @@ export default function OnboardingChat({ userId, onComplete }: OnboardingChatPro
 
         // "done" means user confirmed the goal plan — save to DB
         if (nextStep === "done") {
-          setTimeout(async () => {
-            try {
-              const result = await apiService.onboarding.complete(userId, newData);
-              onComplete(result.macros, newData);
-            } catch (err: unknown) {
-              // Parse the 422 detail to find which fields are missing
-              const errorText = err instanceof Error ? err.message : String(err);
-              const missingFields = parseMissingFields(errorText);
-
-              if (missingFields.length > 0) {
-                const labels = missingFields.map(fieldLabel).join(" and ");
-                addMessage({
-                  sender: "agent",
-                  text: `I'm still missing your ${labels} — could you share that so I can calculate your macros accurately?`,
-                  options: null,
-                });
-                // Jump back to body_stats so the agent can collect the missing info
-                setCurrentStep("body_stats");
-              } else {
-                addMessage({
-                  sender: "agent",
-                  text: "Something went wrong saving your plan. Could you try confirming once more?",
-                  options: ["Looks perfect! ✓"],
-                });
-              }
-            }
-          }, 1200);
+          void attemptComplete(newData);
         }
       } catch {
         addMessage({

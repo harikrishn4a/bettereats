@@ -13,16 +13,18 @@ from schemas import (
     OnboardingStartRequest, OnboardingChatRequest, OnboardingChatResponse,
     OnboardingCompleteRequest, OnboardingCompleteResponse,
     AgentResponse, MacroResult, MacroBreakdown,
+    SuggestionsResponse,
 )
 from agents.preference_profiler import preference_profiler_agent
 from agents.onboarding_conversationalist import start_onboarding, process_chat
 from agents.macro_calculator import calculate_macros
+from agents.meal_suggester import get_meal_suggestions
 
 app = FastAPI(title="Better Eats API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "http://localhost:5173"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -86,7 +88,21 @@ async def onboarding_chat(
 async def onboarding_complete(
     req: OnboardingCompleteRequest, db: Session = Depends(get_db)
 ) -> OnboardingCompleteResponse:
-    data = req.accumulated_data
+    data = dict(req.accumulated_data)  # mutable copy
+
+    # ── Infer missing diet_goal from weight_goal_direction when possible ───────
+    if not data.get("diet_goal"):
+        direction = str(data.get("weight_goal_direction") or "")
+        data["diet_goal"] = (
+            "build_muscle" if direction == "gain"
+            else "fat_loss" if direction == "loss"
+            else "eat_healthier"          # safe default
+        )
+
+    # ── Infer activity_level default if somehow missing ────────────────────────
+    if not data.get("activity_level"):
+        data["activity_level"] = "moderately_active"
+
     required = ["age", "weight_kg", "height_cm", "gender", "activity_level", "diet_goal"]
     missing = [f for f in required if not data.get(f)]
     if missing:
@@ -134,6 +150,8 @@ async def onboarding_complete(
     pref.diet_goal           = str(data["diet_goal"])
     pref.activity_level      = str(data["activity_level"])
     pref.weekly_budget_sgd   = float(data.get("weekly_budget_sgd", 0))
+    if data.get("meals_per_week"):
+        pref.meals_per_week = int(data["meals_per_week"])
     pref.taste_profile       = taste
     pref.meal_timings        = data.get("meal_timings", {})
 
@@ -176,14 +194,9 @@ async def onboarding_complete(
     )
 
 
-# ── Legacy preference endpoint (kept for backward-compat) ────────────────────
+# ── Preference endpoints ─────────────────────────────────────────────────────
 
-@app.post("/preference", response_model=PreferenceResponse)
-async def set_preference(
-    data: PreferenceInput, db: Session = Depends(get_db)
-) -> PreferenceResponse:
-    result = await preference_profiler_agent(data)
-
+def _upsert_user_preferences(data: PreferenceInput, db: Session) -> None:
     user = db.get(User, data.user_id)
     if not user:
         user = User(id=data.user_id)
@@ -207,10 +220,100 @@ async def set_preference(
 
     db.commit()
 
+
+@app.post("/preferences")
+async def set_preferences(
+    data: PreferenceInput, db: Session = Depends(get_db)
+) -> dict:
+    _upsert_user_preferences(data, db)
+    return {
+        "status": "success",
+        "message": "Preferences saved successfully",
+        "user_id": data.user_id,
+    }
+
+
+@app.get("/preferences/{user_id}")
+async def get_preferences(
+    user_id: str, db: Session = Depends(get_db)
+) -> dict:
+    pref = db.get(UserPreference, user_id)
+    if not pref:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {
+        "user_id": user_id,
+        "weekly_budget_sgd": pref.weekly_budget_sgd,
+        "diet_goals": pref.diet_goals,
+        "taste_profile": pref.taste_profile,
+        "meal_timings": pref.meal_timings,
+        "onboarding_complete": pref.onboarding_complete,
+    }
+
+
+@app.post("/preference", response_model=PreferenceResponse)
+async def set_preference(
+    data: PreferenceInput, db: Session = Depends(get_db)
+) -> PreferenceResponse:
+    result = await preference_profiler_agent(data)
+    _upsert_user_preferences(data, db)
+
     return PreferenceResponse(
         status="preference_set",
         agent_validation=result,
         ready_for_suggestions=result.get("valid", False),
+    )
+
+
+@app.post("/suggest", response_model=SuggestionsResponse)
+async def suggest_meals(
+    user_id: str,
+    meal_type: str,
+    latitude: float,
+    longitude: float,
+    db: Session = Depends(get_db),
+) -> SuggestionsResponse:
+    if meal_type not in {"breakfast", "lunch", "dinner"}:
+        raise HTTPException(status_code=400, detail="meal_type must be breakfast, lunch, or dinner")
+
+    pref = db.get(UserPreference, user_id)
+    if not pref:
+        raise HTTPException(status_code=404, detail="User not found. Complete onboarding first.")
+
+    diet_goals = pref.diet_goals if isinstance(pref.diet_goals, dict) else {}
+    user_prefs = {
+        "adjusted_calories": pref.daily_calories or diet_goals.get("calories"),
+        "adjusted_protein_g": pref.daily_protein_g or diet_goals.get("protein_g"),
+        "adjusted_carbs_g": pref.daily_carbs_g or diet_goals.get("carbs_g"),
+        "adjusted_fat_g": pref.daily_fat_g or diet_goals.get("fat_g"),
+        "diet_goals": diet_goals,
+        "taste_profile": pref.taste_profile or {},
+        "weekly_budget_sgd": pref.weekly_budget_sgd,
+        "meals_per_week": pref.meals_per_week,
+    }
+
+    suggestions, search_source = await get_meal_suggestions(
+        user_id=user_id,
+        meal_type=meal_type,
+        user_prefs=user_prefs,
+        latitude=latitude,
+        longitude=longitude,
+    )
+
+    if not suggestions:
+        raise HTTPException(status_code=500, detail="Failed to get suggestions. Please try again.")
+
+    message = (
+        "Perfect! Here are 3 meals from Grab matched to your nutrition goals."
+        if search_source == "grab"
+        else "Here are 3 sample meals matched to your goals (Grab search unavailable — showing curated picks)."
+    )
+
+    return SuggestionsResponse(
+        meal_type=meal_type,
+        suggestions=suggestions,
+        message=message,
+        search_source=search_source,
     )
 
 
@@ -292,3 +395,9 @@ async def api_chat(request: Request) -> StreamingResponse:
             "Connection": "keep-alive",
         },
     )
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

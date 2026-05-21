@@ -60,6 +60,7 @@ class UserPreference(Base):
 
     # ── Preferences (Phase 2 suggestion engine) ───────────────────────────────
     weekly_budget_sgd = Column(Float, nullable=True)
+    meals_per_week    = Column(Integer, nullable=True)  # how many Grab meals the budget covers
     taste_profile     = Column(JSON,  nullable=True)  # {likes: [...], dislikes: [...]}
     meal_timings      = Column(JSON,  nullable=True)  # {breakfast: "07:00", ...}
 

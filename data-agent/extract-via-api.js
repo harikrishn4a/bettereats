@@ -139,7 +139,7 @@ async function callGrabAPI(lat, lng, isFirstCall = false) {
       cuisine: (m.merchantBrief?.cuisine || []).join(', '),
       rating: m.merchantBrief?.rating || 0,
       delivery_time: m.estimatedDeliveryTime ? `${m.estimatedDeliveryTime} mins` : '',
-      url: m.merchantUrl || '',
+      url: `https://food.grab.com/sg/en/restaurants/${m.id}` || '', // Build proper URL from merchant ID
       lat: m.latlng?.latitude || 0,
       lng: m.latlng?.longitude || 0
     })).filter(r => r.name.length > 0);
@@ -193,14 +193,16 @@ async function scrapeDistrict(district, index, total) {
     });
     
     if (uniqueRestaurants.length > 0) {
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('restaurants')
         .insert(uniqueRestaurants);
       
-      if (error && !error.message.includes('duplicate')) {
-        console.log(`  ❌ Save error: ${error.message}`);
+      if (error) {
+        console.log(`  ❌ Insert error: ${error.message}`);
+        console.log(`  🔍 Error code: ${error.code}`);
+        console.log(`  📝 Tried to insert ${uniqueRestaurants.length} items`);
       } else {
-        console.log(`  💾 Saved ${uniqueRestaurants.length} restaurants`);
+        console.log(`  ✅ Successfully inserted ${uniqueRestaurants.length} restaurants`);
       }
     }
   }

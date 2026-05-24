@@ -1,0 +1,217 @@
+⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+🚀 Extracting Restaurants via Grab API (with Authentication)
+
+✅ Supabase connected
+
+🔗 Connecting to Chrome browser to extract authentication...
+
+🔌 Connecting to Chrome with debugging port...
+
+Found endpoint: ws://127.0.0.1:9222/devtools/browser/9b504c8f-8a2a-46ab-aa8b-65025e563a3a
+✅ Connected to existing Chrome instance!
+
+Using browser tab: Fong Hup - 339 Ang Mo Kio ⭐ 4.6
+
+✅ Extracted 21 cookies from browser
+
+
+[1/28] Ang Mo Kio
+  📍 Lat: 1.37016, Lng: 103.84963
+  🔄 Calling Grab API...
+  🍽️  Found 28 restaurants
+  📋 First 5 restaurants: McDonald's - Ang Mo Kio Park, Takagi Ramen - 51 @ AMK, 57° Mala Xiang Guo - ANG MO KIO, Popeyes - AMK Hub, Fong Hup - 339 Ang Mo Kio
+  ✅ Successfully inserted 28 restaurants
+
+[2/28] Bedok
+  📍 Lat: 1.32485, Lng: 103.93379
+  🔄 Calling Grab API...
+  🍽️  Found 31 restaurants
+  📋 First 5 restaurants: Chao Yuan Gourmet - Bedok North Street 2, Fatty Bom Bom - New Upper Changi Road, Ah Ma Chi Mian - Bedok North Avenue 2, Deliz Cafe - Djitsun Mall Bedok, Al Sahira restaurant - New Upper Changi Road
+  ✅ Successfully inserted 31 restaurants
+
+[3/28] Bishan
+  📍 Lat: 1.35132, Lng: 103.84873
+  🔄 Calling Grab API...
+  🍽️  Found 29 restaurants
+  📋 First 5 restaurants: McDonald's - Toa Payoh Lorong 1, Srisun Express - Bishan Street 11, Eat Bar - Lorong 2 Toa Payoh, Long John Silver's - Junction 8, XING LONG FISH SOUP - Bishan Street 24
+  ✅ Successfully inserted 29 restaurants
+
+[4/28] Bukit Batok
+  📍 Lat: 1.34475, Lng: 103.74804
+  🔄 Calling Grab API...
+  🍽️  Found 32 restaurants
+  📋 First 5 restaurants: McDonald's - Bukit Batok Connection, KFC - West Mall, Koo Kee Yong Tow Foo Mee - Bukit Batok Central, Texas Chicken - Bukit Batok Central, Al Majlis Thai Seafood Restaurant - Bukit Batok West Ave 8
+  ✅ Successfully inserted 32 restaurants
+
+[5/28] Bukit Merah
+  📍 Lat: 1.27969, Lng: 103.81565
+  🔄 Calling Grab API...
+  🍽️  Found 28 restaurants
+  📋 First 5 restaurants: McDonald's - REGAL, Lai Chi Mian (来吃面) - Telok Blangah Crescent, Xing Long Fish Soup - Telok Blangah Drive, OK Chicken Rice - Lengkok Bahru, Ding Ji - Membina Court
+  ✅ Successfully inserted 28 restaurants
+
+[6/28] Bukit Timah
+  📍 Lat: 1.34162, Lng: 103.75915
+  🔄 Calling Grab API...
+  🍽️  Found 30 restaurants
+  📋 First 5 restaurants: McDonald's - Bukit Batok Connection, KFC - West Mall, Koo Kee Yong Tow Foo Mee - Bukit Batok Central, Texas Chicken - Bukit Batok Central, Abang Gemuk - Hillgrove Gardens
+  ✅ Successfully inserted 30 restaurants
+
+[7/28] Choa Chu Kang
+  📍 Lat: 1.38447, Lng: 103.74393
+  🔄 Calling Grab API...
+  🍽️  Found 31 restaurants
+  📋 First 5 restaurants: McDonald's - Choa Chu Kang Park, Fatty Bom Bom - Teck Whye Ave, BASIL KING - CCK 302 FoodHouse, Texas Chicken - Choa Chu Kang Drive, Nks Restaurant - Choa Chu Kang Ave 1
+  ✅ Successfully inserted 31 restaurants
+
+[8/28] Clementi
+  📍 Lat: 1.31511, Lng: 103.76218
+  🔄 Calling Grab API...
+  🍽️  Found 32 restaurants
+  📋 First 5 restaurants: Eat Bar - Clementi Avenue 2, Springleaf Prata Place - Newest, Fusion Express - Clementi Avenue 3, Mermaid 中国大排档 Chinese Cuisine - Clementi Avenue 5, Koo Kee Yong Tow Foo Mee - Clementi Ave 3
+  ✅ Successfully inserted 32 restaurants
+
+[9/28] Geylang
+  📍 Lat: 1.30726, Lng: 103.86398
+  🔄 Calling Grab API...
+  🍽️  Found 31 restaurants
+  📋 First 5 restaurants: Da Lian Noodle Express - Syed Alwi Road, Burger King - Kitchener Complex, Sultan Prata Corner - Sultan Plaza, Yen Izakaya (PREMIUM) - Jalan Besar Stadium, Uncle Bu 步大叔黏糊麻辣烫 - Jalan Besar
+  ✅ Successfully inserted 31 restaurants
+
+[10/28] Hougang
+  📍 Lat: 1.36731, Lng: 103.89308
+  🔄 Calling Grab API...
+  🍽️  Found 32 restaurants
+  📋 First 5 restaurants: McDonald's - Hougang Avenue 8, Tenderbest - Hougang Street 22, Yaowarat Thai Kway Chap - Upper Serangoon Road, Srisun Express - Hougang Village, 401 Fried Oyster Carrot Cake Hokkien Mee - Hougang Ave 10
+  ✅ Successfully inserted 32 restaurants
+
+[11/28] Jurong East
+  📍 Lat: 1.34081, Lng: 103.74475
+  🔄 Calling Grab API...
+  🍽️  Found 32 restaurants
+  📋 First 5 restaurants: McDonald's - Bukit Batok Connection, KFC - West Mall, Koo Kee Yong Tow Foo Mee - Bukit Batok Central, Texas Chicken - Bukit Batok Central, Al Majlis Thai Seafood Restaurant - Bukit Batok West Ave 8
+  ✅ Successfully inserted 32 restaurants
+
+[12/28] Jurong West
+  📍 Lat: 1.34053, Lng: 103.70476
+  🔄 Calling Grab API...
+  🍽️  Found 30 restaurants
+  📋 First 5 restaurants: McDonald's - Jurong Central Park, Popeyes (Flagship Store) - Jurong Point, Burger King - Jurong Point, Sukiya - Jurong Point, Long John Silver's - Jurong Point
+  ✅ Successfully inserted 30 restaurants
+
+[13/28] Kallang
+  📍 Lat: 1.30627, Lng: 103.87353
+  🔄 Calling Grab API...
+  🍽️  Found 31 restaurants
+  📋 First 5 restaurants: Da Lian Noodle Express - Syed Alwi Road, Burger King - Kitchener Complex, Sultan Prata Corner - Sultan Plaza, Yen Izakaya (PREMIUM) - Jalan Besar Stadium, Uncle Bu 步大叔黏糊麻辣烫 - Jalan Besar
+  ✅ Successfully inserted 31 restaurants
+
+[14/28] Katong
+  📍 Lat: 1.29815, Lng: 103.89849
+  🔄 Calling Grab API...
+  🍽️  Found 32 restaurants
+  📋 First 5 restaurants: Delhi Darbar Kitchen - East Coast Road, 辣不辣 Labula Mala Hotpot Chinese Cuisine - Marine Parade Promenade, Big Bowl of Dongbei Mala Tang 大碗东北黏糊麻辣烫 - Katong Shopping Centre, BBQ Yan Ji Xiao Chuan 延吉烤小串 - Katong Shopping Centre, Xiang Qin 湘琴湘菜馆 - Katong
+  ✅ Successfully inserted 32 restaurants
+
+[15/28] Macpherson
+  📍 Lat: 1.32638, Lng: 103.87036
+  🔄 Calling Grab API...
+  🍽️  Found 29 restaurants
+  📋 First 5 restaurants: McDonald's - Toa Payoh Lorong 1, Srisun Express - Bishan Street 11, Eat Bar - Lorong 2 Toa Payoh, Long John Silver's - Junction 8, XING LONG FISH SOUP - Bishan Street 24
+  ✅ Successfully inserted 29 restaurants
+
+[16/28] Marine Parade
+  📍 Lat: 1.3017, Lng: 103.89606
+  🔄 Calling Grab API...
+  🍽️  Found 32 restaurants
+  📋 First 5 restaurants: Delhi Darbar Kitchen - East Coast Road, 辣不辣 Labula Mala Hotpot Chinese Cuisine - Marine Parade Promenade, Big Bowl of Dongbei Mala Tang 大碗东北黏糊麻辣烫 - Katong Shopping Centre, BBQ Yan Ji Xiao Chuan 延吉烤小串 - Katong Shopping Centre, Xiang Qin 湘琴湘菜馆 - Katong
+  ✅ Successfully inserted 32 restaurants
+
+[17/28] Novena
+  📍 Lat: 1.32034, Lng: 103.84308
+  🔄 Calling Grab API...
+  🍽️  Found 29 restaurants
+  📋 First 5 restaurants: McDonald's - Toa Payoh Lorong 1, Srisun Express - Bishan Street 11, Eat Bar - Lorong 2 Toa Payoh, Long John Silver's - Junction 8, XING LONG FISH SOUP - Bishan Street 24
+  ✅ Successfully inserted 29 restaurants
+
+[18/28] Orchard
+  📍 Lat: 1.30449, Lng: 103.83441
+  🔄 Calling Grab API...
+  🍽️  Found 28 restaurants
+  📋 First 5 restaurants: McDonald's - REGAL, Lai Chi Mian (来吃面) - Telok Blangah Crescent, Xing Long Fish Soup - Telok Blangah Drive, OK Chicken Rice - Lengkok Bahru, Ding Ji - Membina Court
+  ✅ Successfully inserted 28 restaurants
+
+[19/28] Potong Pasir
+  📍 Lat: 1.32961, Lng: 103.86201
+  🔄 Calling Grab API...
+  🍽️  Found 29 restaurants
+  📋 First 5 restaurants: McDonald's - Toa Payoh Lorong 1, Srisun Express - Bishan Street 11, Eat Bar - Lorong 2 Toa Payoh, Long John Silver's - Junction 8, XING LONG FISH SOUP - Bishan Street 24
+  ✅ Successfully inserted 29 restaurants
+
+[20/28] Punggol
+  📍 Lat: 1.40451, Lng: 103.90434
+  🔄 Calling Grab API...
+  🍽️  Found 32 restaurants
+  📋 First 5 restaurants: McDonald's - Hougang Avenue 8, Tenderbest - Hougang Street 22, Yaowarat Thai Kway Chap - Upper Serangoon Road, Srisun Express - Hougang Village, 401 Fried Oyster Carrot Cake Hokkien Mee - Hougang Ave 10
+  ✅ Successfully inserted 32 restaurants
+
+[21/28] Queenstown
+  📍 Lat: 1.29589, Lng: 103.80194
+  🔄 Calling Grab API...
+  🍽️  Found 28 restaurants
+  📋 First 5 restaurants: McDonald's - REGAL, Lai Chi Mian (来吃面) - Telok Blangah Crescent, Xing Long Fish Soup - Telok Blangah Drive, OK Chicken Rice - Lengkok Bahru, Ding Ji - Membina Court
+  ✅ Successfully inserted 28 restaurants
+
+[22/28] Serangoon
+  📍 Lat: 1.35069, Lng: 103.87195
+  🔄 Calling Grab API...
+  🍽️  Found 29 restaurants
+  📋 First 5 restaurants: McDonald's - Toa Payoh Lorong 1, Srisun Express - Bishan Street 11, Eat Bar - Lorong 2 Toa Payoh, Long John Silver's - Junction 8, XING LONG FISH SOUP - Bishan Street 24
+  ✅ Successfully inserted 29 restaurants
+
+[23/28] Sengkang
+  📍 Lat: 1.39485, Lng: 103.8949
+  🔄 Calling Grab API...
+  🍽️  Found 32 restaurants
+  📋 First 5 restaurants: McDonald's - Hougang Avenue 8, Tenderbest - Hougang Street 22, Yaowarat Thai Kway Chap - Upper Serangoon Road, Srisun Express - Hougang Village, 401 Fried Oyster Carrot Cake Hokkien Mee - Hougang Ave 10
+  ✅ Successfully inserted 32 restaurants
+
+[24/28] Senoko
+  📍 Lat: 1.43989, Lng: 103.80566
+  🔄 Calling Grab API...
+  🍽️  Found 29 restaurants
+  📋 First 5 restaurants: McDonald's - Woodlands Mart, Long John Silver's - Kampung Admiralty, 57° Mala Xiang Guo - Admiralty, Kaye Peri Peri Grille Pasta - Woodlands 11, Fu Zhu Wanton Noodle/Prawn Noodle/Laksa/Satay Bee Hoon 富竹云吞面/虾面/叻沙/沙爹米粉 - 888 Plaza
+  ✅ Successfully inserted 29 restaurants
+
+[25/28] Sentosa
+  📍 Lat: 1.24955, Lng: 103.82065
+  🔄 Calling Grab API...
+  🍽️  Found 27 restaurants
+  📋 First 5 restaurants: The Ice Cream Store - Telok Blangah Road, Vivino - Telok Blangah, Blu Kouzina - Palawan Beach Walk, YE OLDE COW (KIDZANIA) - Beach View Road, Sentosa Island, Le Faubourg - Gunner Lane
+  ✅ Successfully inserted 27 restaurants
+
+[26/28] Sembawang
+  📍 Lat: 1.42383, Lng: 103.82209
+  🔄 Calling Grab API...
+  🍽️  Found 29 restaurants
+  📋 First 5 restaurants: McDonald's - Woodlands Mart, Long John Silver's - Kampung Admiralty, 57° Mala Xiang Guo - Admiralty, Kaye Peri Peri Grille Pasta - Woodlands 11, Fu Zhu Wanton Noodle/Prawn Noodle/Laksa/Satay Bee Hoon 富竹云吞面/虾面/叻沙/沙爹米粉 - 888 Plaza
+  ✅ Successfully inserted 29 restaurants
+
+[27/28] Tampines
+  📍 Lat: 1.35272, Lng: 103.94502
+  🔄 Calling Grab API...
+  🍽️  Found 31 restaurants
+  📋 First 5 restaurants: Chao Yuan Gourmet - Bedok North Street 2, Fatty Bom Bom - New Upper Changi Road, Ah Ma Chi Mian - Bedok North Avenue 2, Deliz Cafe - Djitsun Mall Bedok, Al Sahira restaurant - New Upper Changi Road
+  ✅ Successfully inserted 31 restaurants
+
+[28/28] Tanjong Pagar
+  📍 Lat: 1.27668, Lng: 103.84485
+  🔄 Calling Grab API...
+  🍽️  Found 31 restaurants
+  📋 First 5 restaurants: Da Lian Noodle Express - Syed Alwi Road, Burger King - Kitchener Complex, Sultan Prata Corner - Sultan Plaza, Yen Izakaya (PREMIUM) - Jalan Besar Stadium, Uncle Bu 步大叔黏糊麻辣烫 - Jalan Besar
+  ✅ Successfully inserted 31 restaurants
+
+============================================================
+✅ Complete!
+============================================================
+

@@ -3,17 +3,23 @@
 import puppeteer from 'puppeteer-core';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import { readFile, writeFile } from 'fs/promises';
+import { existsSync } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const PROGRESS_FILE = path.join(__dirname, '.scrape-progress.json');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
 const PAGE_SIZE = 32;
-const PAGE_DELAY_MS = 2500;
-const DISTRICT_DELAY_MS = 8000;
+const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '4', 10);
+const PAGE_DELAY_MS = 4000;
 const MAX_RETRIES = 5;
-const COOKIE_REFRESH_EVERY = 4;
 
 const DISTRICTS = [
   { name: 'Ang Mo Kio', lat: 1.37016, lng: 103.84963 },
@@ -53,6 +59,21 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+async function readProgress() {
+  if (!existsSync(PROGRESS_FILE)) {
+    return { nextDistrictIndex: 0 };
+  }
+  const raw = await readFile(PROGRESS_FILE, 'utf8');
+  return JSON.parse(raw);
+}
+
+async function writeProgress(nextDistrictIndex) {
+  await writeFile(
+    PROGRESS_FILE,
+    JSON.stringify({ nextDistrictIndex, updatedAt: new Date().toISOString() }, null, 2)
+  );
+}
+
 async function initSupabase() {
   supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
   console.log('✅ Supabase connected\n');
@@ -67,37 +88,28 @@ async function connectToExistingBrowser() {
   });
 }
 
-async function fetchCookiesFromBrowser(quiet = false) {
-  if (!quiet) {
-    console.log('🔗 Connecting to Chrome browser to extract authentication...\n');
-  }
-
+async function refreshCookies(quiet = false) {
   try {
     const browser = await connectToExistingBrowser();
     const pages = await browser.pages();
     const page = pages.find(p => p.url().includes('grab.com')) || pages[0];
 
-    if (!quiet) {
-      console.log(`Using browser tab: ${await page.title()}\n`);
+    if (!page) {
+      throw new Error('No Chrome tabs found. Open https://food.grab.com in debug Chrome first.');
     }
 
     cookies = await page.cookies();
 
     if (!quiet) {
-      console.log(`✅ Extracted ${cookies.length} cookies from browser\n`);
+      console.log(`🔄 Refreshed cookies (${cookies.length} total)\n`);
     } else {
-      console.log(`    🔄 Refreshed ${cookies.length} cookies from browser`);
+      console.log(`    🔄 Refreshed cookies (${cookies.length} total)`);
     }
 
     await browser.disconnect();
     return true;
   } catch (error) {
-    console.error('❌ Could not connect to Chrome');
-    console.error('\nPlease follow these steps:');
-    console.error('1. Run: /Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --remote-debugging-port=9222 --incognito --user-data-dir=/tmp/chrome-debug https://food.grab.com/sg/en/restaurants &');
-    console.error('2. Log into Grab in that Chrome window');
-    console.error('3. Run this script again');
-    console.error('\nError details:', error.message);
+    console.error('❌ Cookie refresh failed:', error.message);
     return false;
   }
 }
@@ -163,21 +175,21 @@ async function callGrabAPIWithRetry(lat, lng, offset) {
 
       const retryable = [429, 502, 503, 504].includes(result.status);
       if (!retryable) {
-        console.log(`    ❌ API returned ${result.status} at offset ${offset} (not retrying)`);
+        console.log(`    ❌ API ${result.status} at offset ${offset}`);
         return result;
       }
 
       const waitMs = Math.min(60000, 5000 * attempt);
       console.log(`    ⚠️  API ${result.status} at offset ${offset}, retry ${attempt}/${MAX_RETRIES} in ${waitMs / 1000}s...`);
 
-      if (attempt === 2 || attempt === 4) {
-        await fetchCookiesFromBrowser(true);
+      if (attempt === 2) {
+        await refreshCookies(true);
       }
 
       await sleep(waitMs);
     } catch (error) {
       const waitMs = Math.min(30000, 3000 * attempt);
-      console.log(`    ⚠️  Request failed at offset ${offset}: ${error.message}, retry ${attempt}/${MAX_RETRIES}...`);
+      console.log(`    ⚠️  Request error at offset ${offset}: ${error.message}, retry ${attempt}/${MAX_RETRIES}...`);
       await sleep(waitMs);
     }
   }
@@ -185,10 +197,22 @@ async function callGrabAPIWithRetry(lat, lng, offset) {
   return { ok: false, status: 429, restaurants: [] };
 }
 
+async function preflightCheck() {
+  const test = DISTRICTS[0];
+  console.log('🔍 Pre-flight API check...');
+  const result = await callGrabAPIWithRetry(test.lat, test.lng, 0);
+
+  if (!result.ok) {
+    console.log(`❌ Grab API not ready (status ${result.status}). Wait 30–60 min and try again.\n`);
+    return false;
+  }
+
+  console.log(`✅ API ready (${result.restaurants.length} restaurants on test call)\n`);
+  return true;
+}
+
 async function scrapeDistrict(district, index, total) {
-  console.log(`\n[${index}/${total}] ${district.name}`);
-  console.log(`  📍 Lat: ${district.lat}, Lng: ${district.lng}`);
-  console.log('  🔄 Fetching all restaurants...');
+  console.log(`[${index}/${total}] ${district.name}`);
 
   const allRestaurants = [];
   const seenUrls = new Set();
@@ -199,14 +223,11 @@ async function scrapeDistrict(district, index, total) {
     const result = await callGrabAPIWithRetry(district.lat, district.lng, offset);
 
     if (!result.ok) {
-      console.log(`    ❌ Giving up on ${district.name} at offset ${offset} after retries`);
-      break;
+      console.log(`  ❌ Stopping ${district.name} — rate limited or API error (${result.status})\n`);
+      return { success: false, count: allRestaurants.length };
     }
 
     if (result.restaurants.length === 0) {
-      if (pageNum === 1) {
-        console.log('    ⚠️  Empty first page (no restaurants for this location)');
-      }
       break;
     }
 
@@ -219,73 +240,108 @@ async function scrapeDistrict(district, index, total) {
       }
     }
 
-    console.log(`    📄 Page ${pageNum} (offset ${offset}): ${result.restaurants.length} fetched, ${newOnPage} new`);
+    console.log(`  📄 Page ${pageNum} (offset ${offset}): ${result.restaurants.length} fetched, ${newOnPage} new`);
     offset += PAGE_SIZE;
     pageNum++;
 
     await sleep(PAGE_DELAY_MS);
   }
 
-  console.log(`  🍽️  Found ${allRestaurants.length} restaurants total`);
+  console.log(`  ✅ Total: ${allRestaurants.length} restaurants`);
 
   if (allRestaurants.length > 0) {
     const first3 = allRestaurants.slice(0, 3).map(r => r.name).join(', ');
     console.log(`  📋 First 3: ${first3}`);
+
+    const rows = allRestaurants.map(r => ({
+      name: r.name,
+      cuisine: r.cuisine,
+      rating: r.rating,
+      grab_url: r.url,
+      district: district.name,
+      delivery_time: r.delivery_time,
+      health_score: 0,
+      latitude: r.lat,
+      longitude: r.lng,
+      updated_at: new Date().toISOString(),
+    }));
+
+    const { error } = await supabase
+      .from('restaurants')
+      .upsert(rows, { onConflict: 'grab_url' });
+
+    if (error) {
+      console.log(`  ❌ Upsert error: ${error.message}`);
+      return { success: false, count: allRestaurants.length };
+    }
+
+    console.log(`  💾 Upserted ${rows.length} restaurants`);
   }
 
-  if (allRestaurants.length === 0) {
-    return;
-  }
-
-  const uniqueRestaurants = allRestaurants.map(r => ({
-    name: r.name,
-    cuisine: r.cuisine,
-    rating: r.rating,
-    grab_url: r.url,
-    district: district.name,
-    delivery_time: r.delivery_time,
-    health_score: 0,
-    latitude: r.lat,
-    longitude: r.lng,
-    updated_at: new Date().toISOString(),
-  }));
-
-  const { error } = await supabase
-    .from('restaurants')
-    .upsert(uniqueRestaurants, { onConflict: 'grab_url' });
-
-  if (error) {
-    console.log(`  ❌ Upsert error: ${error.message}`);
-  } else {
-    console.log(`  ✅ Upserted ${uniqueRestaurants.length} restaurants`);
-  }
+  console.log('');
+  return { success: true, count: allRestaurants.length };
 }
 
 async function main() {
-  console.log('🚀 Extracting Restaurants via Grab API (with Pagination)\n');
+  console.log('🚀 Restaurant Extraction (batched, resumable)\n');
 
   await initSupabase();
 
-  const cookiesOk = await fetchCookiesFromBrowser();
+  const cookiesOk = await refreshCookies();
   if (!cookiesOk) {
     process.exit(1);
   }
 
-  for (let i = 0; i < DISTRICTS.length; i++) {
-    if (i > 0 && i % COOKIE_REFRESH_EVERY === 0) {
-      await fetchCookiesFromBrowser(true);
-    }
+  const progress = await readProgress();
+  let startIndex = progress.nextDistrictIndex;
 
-    await scrapeDistrict(DISTRICTS[i], i + 1, DISTRICTS.length);
-
-    if (i < DISTRICTS.length - 1) {
-      console.log(`  ⏳ Waiting ${DISTRICT_DELAY_MS / 1000}s before next district...`);
-      await sleep(DISTRICT_DELAY_MS);
-    }
+  if (startIndex >= DISTRICTS.length) {
+    console.log('✅ All districts already completed. Resetting progress to start over.\n');
+    startIndex = 0;
+    await writeProgress(0);
   }
 
-  console.log(`\n${'='.repeat(60)}`);
-  console.log('✅ Complete!');
+  const apiReady = await preflightCheck();
+  if (!apiReady) {
+    process.exit(1);
+  }
+
+  const endIndex = Math.min(startIndex + BATCH_SIZE, DISTRICTS.length);
+  const batch = DISTRICTS.slice(startIndex, endIndex);
+
+  console.log(`📦 Batch: districts ${startIndex + 1}–${endIndex} of ${DISTRICTS.length} (${batch.map(d => d.name).join(', ')})\n`);
+
+  let nextIndex = startIndex;
+
+  for (let i = 0; i < batch.length; i++) {
+    if (i > 0) {
+      await refreshCookies(true);
+    }
+
+    const districtIndex = startIndex + i;
+    const result = await scrapeDistrict(batch[i], districtIndex + 1, DISTRICTS.length);
+
+    if (!result.success) {
+      console.log(`⏸️  Batch paused at district ${districtIndex + 1} (${batch[i].name})`);
+      console.log(`   Progress saved at index ${nextIndex}. Wait 30–60 min, then run again.\n`);
+      await writeProgress(nextIndex);
+      process.exit(1);
+    }
+
+    nextIndex = districtIndex + 1;
+    await writeProgress(nextIndex);
+  }
+
+  console.log(`${'='.repeat(60)}`);
+  if (nextIndex >= DISTRICTS.length) {
+    console.log('✅ All districts complete!');
+    await writeProgress(0);
+  } else {
+    const next = DISTRICTS[nextIndex];
+    console.log(`✅ Batch complete!`);
+    console.log(`➡️  Next run will start at district ${nextIndex + 1}: ${next.name}`);
+    console.log(`   Wait 30–60 min before running again to avoid rate limits.`);
+  }
   console.log(`${'='.repeat(60)}\n`);
 }
 

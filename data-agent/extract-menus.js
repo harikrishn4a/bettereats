@@ -170,18 +170,41 @@ async function scrapeRestaurantMenu(restaurant, index, total) {
   }
 }
 
+async function fetchAllRestaurants() {
+  const pageSize = 1000;
+  const allRestaurants = [];
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from('restaurants')
+      .select('id, name, grab_url')
+      .order('id', { ascending: true })
+      .range(from, from + pageSize - 1);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (!data.length) break;
+
+    allRestaurants.push(...data);
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+
+  return allRestaurants;
+}
+
 async function main() {
   console.log('🚀 Extracting Menus via Browser Scraping\n');
   
   await initSupabase();
   
-  // Get restaurants
-  const { data: restaurants, error } = await supabase
-    .from('restaurants')
-    .select('id, name, grab_url')
-    .limit(1000);
-  
-  if (error) {
+  let restaurants;
+  try {
+    restaurants = await fetchAllRestaurants();
+  } catch (error) {
     console.error('❌ Failed to fetch restaurants:', error.message);
     process.exit(1);
   }

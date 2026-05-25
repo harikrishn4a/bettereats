@@ -42,6 +42,21 @@ const ALL_DISTRICTS = [
 
 const BATCH_SIZE = 4;
 
+function generateGrabUrl(merchant) {
+  if (!merchant.id) return '';
+
+  const name = merchant.address?.name || 'restaurant';
+  const slug = name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+
+  return `https://food.grab.com/sg/en/restaurant/${slug}/${merchant.id}`;
+}
+
 async function initSupabase() {
   supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 }
@@ -95,10 +110,10 @@ async function callGrabAPIWithRetry(lat, lng, offset = 0, retries = 3) {
       name: m.address?.name || '',
       cuisine: (m.merchantBrief?.cuisine || []).join(', '),
       rating: m.merchantBrief?.rating || 0,
-      url: `https://food.grab.com/sg/en/restaurant/${m.id}` || '',
+      url: generateGrabUrl(m),
       lat: m.latlng?.latitude || 0,
       lng: m.latlng?.longitude || 0,
-    })).filter(r => r.name.length > 0);
+    })).filter(r => r.name.length > 0 && r.url.length > 0);
   }
 
   console.log(`    ❌ Failed after ${retries} retries`);
@@ -183,6 +198,6 @@ async function scrapeDistrict(district, index, total) {
 
   console.log('✅ Batch complete!');
   if (endIndex < ALL_DISTRICTS.length) {
-    console.log(`\n📝 Next: node extract-batch-with-retry.js ${endIndex}`);
+    console.log(`\n📝 Next: node extract-batch.js ${endIndex}`);
   }
 })();
